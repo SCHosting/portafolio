@@ -9,6 +9,7 @@ export class ProductosService {
 
   cargando = true;
   productos : Producto[] = [];
+  productosFiltrados: Producto[] = [];
 
   constructor( private http: HttpClient) { 
 
@@ -17,13 +18,57 @@ export class ProductosService {
 
   private cargarProductos (){
 
-    this.http.get('https://angula-html-e4f12.firebaseio.com/productos_idx.json')
+    return new Promise( (resolve, reject) => {
+      this.http.get('https://angula-html-e4f12.firebaseio.com/productos_idx.json')
       .subscribe( (resp: Producto[]) =>{
-
-        console.log(resp);
         this.productos = resp;
         this.cargando = false;
+        resolve();
       });
+
+    });
+
+
+  }
+
+  getProducto( id:string ){
+    return this.http.get(`https://angula-html-e4f12.firebaseio.com/productos/${ id }.json`);
+  }
+
+  buscarProducto( termino: string) {
+
+if (this.productos.length === 0){
+  //cargar productos
+  this.cargarProductos().then( ( ) =>{
+//se ejecuta despues de tener los productos
+  this.filtrarProductos( termino );
+  });
+} else{
+  //aplicar filtro
+  this.filtrarProductos( termino );
+}
+
+
+  }
+
+
+  private filtrarProductos( termino: string){
+
+    //console.log(this.productos);
+    this.productosFiltrados = [];
+
+    termino = termino.toLocaleLowerCase();
+
+    this.productos.forEach( prod =>{
+
+      const tituloLower = prod.titulo.toLocaleLowerCase();
+
+    if ( prod.categoria.indexOf (  termino  ) >= 0 || tituloLower.indexOf ( termino ) >=0 ){
+        this.productosFiltrados.push ( prod );
+    }
+
+    });
+
   }
 
 }
